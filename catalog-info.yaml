@@ -1,0 +1,30 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: 
+  description: "proxy api for connecting v3/ REST endpoints to graph"
+  annotations:
+    github.com/project-slug: pocket/
+    github.com/team-slug: "backend"
+    circleci.com/project-slug: github/pocket/
+    sentry.io/project-slug: "v3proxyapi"
+spec:
+  type: service
+  owner: backend
+  lifecycle: production
+  providesApis:
+    - 
+
+---
+
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: 
+  description: "proxy api for connecting v3/ REST endpoints to graph"
+spec:
+  type: graphql
+  owner: backend
+  definition: |
+    query {}
+  lifecycle: production
