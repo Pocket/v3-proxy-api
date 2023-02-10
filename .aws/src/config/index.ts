@@ -19,12 +19,11 @@ export const config = {
   circleCIPrefix: `/${name}/CircleCI/${environment}`,
   shortName: 'v3Prxy', // max 6 characters
   environment,
-  repository: 'pocket/v3-proxy-api',
   domainPrefix,
   domain,
   codePipeline: {
     githubConnectionArn,
-    repository: 'pocket/',
+    repository: 'pocket/v3-proxy-api',
     branch,
   },
   healthCheck: {
