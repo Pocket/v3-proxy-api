@@ -6,6 +6,8 @@ version: 0.2
 # For Code Deployments see CircleCI and AWS CodeDeploy
 #####
 
+run-as: circleci
+
 env:
   variables:
     #Terraform workspace that we operate in
