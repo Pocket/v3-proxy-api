@@ -69,7 +69,7 @@ jobs:
           paths:
             - ./node_modules
       - run:
-          name:
+          name: build
           command: |
             export NODE_ENV=production
             npm run build
@@ -78,7 +78,7 @@ jobs:
           name: Setup workspace
           command: |
             mkdir -p /tmp/workspace/app_prod
-            cp -r ./node_modules package.json Dockerfile schema.graphql ./dist /tmp/workspace/app_prod
+            cp -r ./node_modules package.json Dockerfile ./dist /tmp/workspace/app_prod
       # Persist built files to workspace
       - persist_to_workspace:
           root: /tmp/workspace
@@ -97,11 +97,6 @@ jobs:
           - NODE_ENV=test
           - AWS_XRAY_LOG_LEVEL=silent
           - AWS_XRAY_CONTEXT_MISSING=LOG_ERROR
-      # Example for snowplow service
-      - image: pocket/snowplow-micro:prod
-        auth:
-          username: $DOCKERHUB_USERNAME
-          password: $DOCKERHUB_PASSWORD
     steps:
       - checkout
       - restore_cache:
