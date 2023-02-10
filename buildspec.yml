@@ -27,7 +27,7 @@ env:
     PAGERDUTY_TOKEN: 'CodeBuild/Default:pagerduty_token'
     GITHUB_ACCESS_TOKEN: 'CodeBuild/Default:github_access_token'
 
-#All phases are ran within the hashicorp/terraform:light docker image
+#All phases are ran within the pocket/pocket-build:prod docker image
 phases:
   pre_build:
     run-as: circleci
@@ -41,9 +41,8 @@ phases:
       - echo "$rc" > ~/.terraformrc
       - echo Setting environment variables
       - cd .aws
-      - tfenv use $(cat .terraform-version)
       - npm ci
-      - ls -la .
+      - tfenv install
       # synthesize the js into terraform json with the proper node environment
       - 'if [ "$GIT_BRANCH" = "$DEV_BRANCH" ]; then NODE_ENV=development npm run synth; else npm run synth; fi'
       - cd cdktf.out/stacks/v3-proxy-api

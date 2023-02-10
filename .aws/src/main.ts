@@ -150,8 +150,8 @@ class Stack extends TerraformStack {
           name: 'app',
           portMappings: [
             {
-              hostPort: 4005,
-              containerPort: 4005,
+              hostPort: config.port,
+              containerPort: config.port,
             },
           ],
           healthCheck: config.healthCheck,
@@ -173,6 +173,7 @@ class Stack extends TerraformStack {
           ],
         },
         {
+          //todo: change to opentelemetry in followup PR
           name: 'xray-daemon',
           containerImage: 'public.ecr.aws/xray/aws-xray-daemon:latest',
           portMappings: [
@@ -197,7 +198,7 @@ class Stack extends TerraformStack {
       },
       exposedContainer: {
         name: 'app',
-        port: 4001,
+        port: config.port,
         healthCheckPath: '/.well-known/apollo/server-health',
       },
       ecsIamConfig: {

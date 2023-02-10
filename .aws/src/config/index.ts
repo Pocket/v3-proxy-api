@@ -9,10 +9,12 @@ const githubConnectionArn = isDev
   ? 'arn:aws:codestar-connections:us-east-1:410318598490:connection/7426c139-1aa0-49e2-aabc-5aef11092032'
   : 'arn:aws:codestar-connections:us-east-1:996905175585:connection/5fa5aa2b-a2d2-43e3-ab5a-72ececfc1870';
 const branch = isDev ? 'dev' : 'main';
+const port = 4029;
 
 export const config = {
   name,
   isDev,
+  port,
   prefix: `${name}-${environment}`,
   circleCIPrefix: `/${name}/CircleCI/${environment}`,
   shortName: 'v3Prxy', // max 6 characters
@@ -28,7 +30,7 @@ export const config = {
   healthCheck: {
     command: [
       'CMD-SHELL',
-      'curl -f http://localhost:4001/.well-known/apollo/server-health || exit 1',
+      'curl -f http://localhost:4029/.well-known/apollo/server-health || exit 1',
     ],
     interval: 15,
     retries: 3,
