@@ -116,6 +116,12 @@ class Stack extends TerraformStack {
     });
   }
 
+  /**
+   * method to set up ALB, ECS cluster, relevant IAM permissions,
+   * and inject environment variables for ecs
+   * @param dependencies
+   * @private
+   */
   private createPocketAlbApplication(dependencies: {
     pagerDuty: PocketPagerDuty;
     region: datasources.DataAwsRegion;

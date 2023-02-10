@@ -7,9 +7,8 @@ describe('supertest setup', () => {
   });
   //todo: amend this as we change v3 get response
   it('v3 get call should return 200 and response', async () => {
-     const response = await request(app)
-      .post('/v3/get');
-     expect(response.status).toBe(200);
-     expect(response.text).toBe('Ok!');
+    const response = await request(app).post('/v3/get');
+    expect(response.status).toBe(200);
+    expect(response.text).toBe('Ok!');
   });
 });
