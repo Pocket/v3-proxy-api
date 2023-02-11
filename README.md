@@ -1,4 +1,6 @@
-# 
+# v3-Proxy-Api
+wrapper to connect the v3 endpoints to pocket graph v1 
+- endpoints to be covered `add`, `send`, and `get`
 
 ## Folder structure
 
@@ -7,6 +9,17 @@
 - `.circleci` contains circleCI setup
 
 ## Develop Locally
+```js
+nvm use
+npm ci
+docker-compose up
+```
+
+## Run tests
+```js
+npm run test
+npm run test-integrations
+```
 
 ### Using Docker
 

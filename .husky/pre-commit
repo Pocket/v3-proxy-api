@@ -2,7 +2,7 @@
 . "$(dirname -- "$0")/_/husky.sh"
 
 npm test
-#can add integration test and other commands based on the need
+npm run test-integrations
 echo "running lint-fix in: $(pwd)"
 npm run lint-fix
 cd .aws
