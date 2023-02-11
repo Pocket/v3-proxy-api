@@ -8,11 +8,9 @@ import {
 import { AwsProvider, kms, datasources, sns } from '@cdktf/provider-aws';
 import { config } from './config';
 import {
-  ApplicationRedis,
   PocketALBApplication,
   PocketECSCodePipeline,
   PocketPagerDuty,
-  PocketVPC,
 } from '@pocket-tools/terraform-modules';
 import { PagerdutyProvider } from '@cdktf/provider-pagerduty';
 import { LocalProvider } from '@cdktf/provider-local';
@@ -36,7 +34,6 @@ class Stack extends TerraformStack {
 
     const region = new datasources.DataAwsRegion(this, 'region');
     const caller = new datasources.DataAwsCallerIdentity(this, 'caller');
-    const cache = Stack.createElasticache(this);
 
     const pocketApp = this.createPocketAlbApplication({
       pagerDuty: this.createPagerDuty(),
@@ -44,46 +41,9 @@ class Stack extends TerraformStack {
       snsTopic: this.getCodeDeploySnsTopic(),
       region,
       caller,
-      cache,
     });
 
     this.createApplicationCodePipeline(pocketApp);
-  }
-
-  /**
-   * Creates the elasticache and returns the node address list
-   * @param scope
-   * @private
-   */
-  private static createElasticache(scope: Construct): {
-    primaryEndpoint: string;
-    readerEndpoint: string;
-  } {
-    const pocketVPC = new PocketVPC(scope, 'pocket-vpc');
-
-    const elasticache = new ApplicationRedis(scope, 'redis', {
-      //Usually we would set the security group ids of the service that needs to hit this.
-      //However we don't have the necessary security group because it gets created in PocketALBApplication
-      //So instead we set it to null and allow anything within the vpc to access it.
-      //This is not ideal..
-      //Ideally we need to be able to add security groups to the ALB application.
-      allowedIngressSecurityGroupIds: undefined,
-      node: {
-        count: config.cacheNodes,
-        size: config.cacheSize,
-      },
-      subnetIds: pocketVPC.privateSubnetIds,
-      tags: config.tags,
-      vpcId: pocketVPC.vpc.id,
-      prefix: config.prefix,
-    });
-
-    return {
-      primaryEndpoint:
-        elasticache.elasticacheReplicationGroup.primaryEndpointAddress,
-      readerEndpoint:
-        elasticache.elasticacheReplicationGroup.readerEndpointAddress,
-    };
   }
 
   /**
@@ -156,13 +116,18 @@ class Stack extends TerraformStack {
     });
   }
 
+  /**
+   * method to set up ALB, ECS cluster, relevant IAM permissions,
+   * and inject environment variables for ecs
+   * @param dependencies
+   * @private
+   */
   private createPocketAlbApplication(dependencies: {
     pagerDuty: PocketPagerDuty;
     region: datasources.DataAwsRegion;
     caller: datasources.DataAwsCallerIdentity;
     secretsManagerKmsAlias: kms.DataAwsKmsAlias;
     snsTopic: sns.DataAwsSnsTopic;
-    cache: { primaryEndpoint: string; readerEndpoint: string };
   }): PocketALBApplication {
     const {
       //  pagerDuty, // enable if necessary
@@ -170,7 +135,6 @@ class Stack extends TerraformStack {
       caller,
       secretsManagerKmsAlias,
       snsTopic,
-      cache,
     } = dependencies;
 
     return new PocketALBApplication(this, 'application', {
@@ -186,8 +150,8 @@ class Stack extends TerraformStack {
           name: 'app',
           portMappings: [
             {
-              hostPort: 4005,
-              containerPort: 4005,
+              hostPort: config.port,
+              containerPort: config.port,
             },
           ],
           healthCheck: config.healthCheck,
@@ -200,14 +164,6 @@ class Stack extends TerraformStack {
               name: 'ENVIRONMENT',
               value: process.env.NODE_ENV, // this gives us a nice lowercase production and development
             },
-            {
-              name: 'REDIS_PRIMARY_ENDPOINT',
-              value: cache.primaryEndpoint,
-            },
-            {
-              name: 'REDIS_READER_ENDPOINT',
-              value: cache.readerEndpoint,
-            },
           ],
           secretEnvVars: [
             {
@@ -217,6 +173,7 @@ class Stack extends TerraformStack {
           ],
         },
         {
+          //todo: change to opentelemetry in followup PR
           name: 'xray-daemon',
           containerImage: 'public.ecr.aws/xray/aws-xray-daemon:latest',
           portMappings: [
@@ -241,8 +198,8 @@ class Stack extends TerraformStack {
       },
       exposedContainer: {
         name: 'app',
-        port: 4001,
-        healthCheckPath: '/.well-known/apollo/server-health',
+        port: config.port,
+        healthCheckPath: '/.well-known/server-health',
       },
       ecsIamConfig: {
         prefix: config.prefix,
@@ -305,7 +262,7 @@ class Stack extends TerraformStack {
 }
 
 const app = new App();
-const stack = new Stack(app, '');
+const stack = new Stack(app, `${config.domainPrefix}`);
 const tfEnvVersion = fs.readFileSync('.terraform-version', 'utf8');
 stack.addOverride('terraform.required_version', tfEnvVersion);
 app.synth();
