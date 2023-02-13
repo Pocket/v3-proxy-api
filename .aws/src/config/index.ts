@@ -29,7 +29,7 @@ export const config = {
   healthCheck: {
     command: [
       'CMD-SHELL',
-      'curl -f http://localhost:4029/.well-known/server-health || exit 1',
+      `curl -f http://localhost:${port}/.well-known/server-health || exit 1`,
     ],
     interval: 15,
     retries: 3,
