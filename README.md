@@ -36,3 +36,12 @@ Alternatively if you do not need to use the docker services in your app, like sn
 npm ci
 npm run start:dev
 ```
+
+### To pull latest graphQL types
+
+Our graphQL types are generated from the pocket graph v1 schema. 
+To pull the latest types, run:
+
+```js
+npm run codegen
+```

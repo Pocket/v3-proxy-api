@@ -1,0 +1,29 @@
+query getSavedItems($pagination: PaginationInput, $filters: SavedItemsFilter, $sort: SavedItemsSort) {
+    user {
+        savedItems(pagination: $pagination, filter: $filters sort: $sort) {
+            edges {
+                cursor
+                node {
+                    id
+                    status
+                    url
+                    item {
+                        __typename
+                        ... on Item {
+                            wordCount
+                            topImage {
+                                url
+                            }
+                            title
+                            timeToRead
+                            resolvedUrl
+                            givenUrl
+                            excerpt
+                            domain
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
