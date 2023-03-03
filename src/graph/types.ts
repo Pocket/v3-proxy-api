@@ -28,25 +28,27 @@ export type GraphSavedItem = GraphSavedItemEdge['node'];
 export type GraphItem = Extract<GraphSavedItem['item'], { __typename: 'Item' }>;
 
 export type RestResponse = {
-  //todo: investigate other field types
+  //todo: investigate and validate other field types
   //e.g status, complete - as they are not mapped by developer portal docs
-  list: ItemListObject[];
+  list: { [key: string]: ListItemObject };
   cacheType: string;
 };
 
-export type ItemListObject = {
+export type ListItemObject = {
   item_id: string;
   resolved_id: string;
   given_url: string;
+  resolved_url: string;
   given_title: string;
+  resolved_title: string;
+
   favorite: '0' | '1';
   status: '0' | '1';
-  time_added: string; //timestamp as string
-  time_updated: string; //timestamp as string
-  time_read: string; //timestamp as string
-  time_favorited: string; //timestamp as string
-  resolved_title: string;
-  resolved_url: string;
+  //timestamps are string in v3 response
+  time_added: string;
+  time_updated: string;
+  time_read: string;
+  time_favorited: string;
   title: string;
   excerpt: string;
   is_article: '0' | '1';

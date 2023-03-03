@@ -9,7 +9,8 @@ import {
 } from '../generated/graphql/types';
 
 export function setSaveInputsFromGetCall(getParams: any): UserSavedItemsArgs {
-  //todo: map rest to graphql saveById inputs
+  //todo: stubbed for skeleton
+  //to be replaced by actual mapping in following tickets
   return {
     pagination: {
       first: 10,

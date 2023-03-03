@@ -2,6 +2,9 @@
 . "$(dirname -- "$0")/_/husky.sh"
 
 npm test
+npm run test-integrations
+echo "running lint-fix in: $(pwd)"
+npm run lint-fix
 cd .aws
 echo "running lint-fix in: $(pwd)"
 npm run lint-fix

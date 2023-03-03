@@ -11,4 +11,5 @@ export default {
     release: process.env.GIT_SHA || '',
     environment: process.env.NODE_ENV || 'development',
   },
+  graphQLProxy: process.env.GRAPHQL_PROXY || 'https://getpocket.com/graphql',
 };

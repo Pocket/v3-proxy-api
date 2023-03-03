@@ -1,10 +1,9 @@
-import { GraphQLClient, Variables } from 'graphql-request';
+import { GraphQLClient } from 'graphql-request';
 
 import {
   GetSavedItemsDocument,
   GetSavedItemsQuery,
   GetSavedItemsQueryVariables,
-  PocketSave,
   SaveArchiveDocument,
   SaveArchiveMutation,
   SaveFavoriteDocument,
@@ -12,7 +11,7 @@ import {
   SaveFavoriteMutationVariables,
 } from '../generated/graphql/types';
 import { SaveArchiveMutationVariables } from '../generated/graphql/types';
-import { TypedDocumentNode } from '@graphql-typed-document-node/core';
+import config from '../config';
 
 /**
  * gives a graphQLClient for pocket-graph url
@@ -23,7 +22,7 @@ import { TypedDocumentNode } from '@graphql-typed-document-node/core';
  */
 export function getClient(accessToken: string, consumerKey: string) {
   return new GraphQLClient(
-    `https://getpocket.com/graphql?consumer_key=${consumerKey}&access_token=${accessToken}`,
+    `${config.graphQLProxy}?consumer_key=${consumerKey}&access_token=${accessToken}`,
     {
       //fetch implementation used by node version,
       //can give custom fetch package
@@ -39,14 +38,11 @@ export function getClient(accessToken: string, consumerKey: string) {
  */
 export async function callSaveArchive(
   auth: any,
-  document: TypedDocumentNode<
-    SaveArchiveMutation,
-    SaveArchiveMutationVariables
-  >,
+  accessToken: string,
+  consumerKey: string,
   variables: SaveArchiveMutationVariables
 ): Promise<SaveArchiveMutation> {
-  const { consumer_key, access_token, cookie } = auth;
-  const client = getClient(access_token, consumer_key);
+  const client = getClient(accessToken, consumerKey);
   return client.request<SaveArchiveMutation, SaveArchiveMutationVariables>(
     SaveArchiveDocument,
     variables
@@ -60,15 +56,11 @@ export async function callSaveArchive(
  * @param variables variables required for the mutation
  */
 export async function callSaveFavorite(
-  auth: any,
-  document: TypedDocumentNode<
-    SaveFavoriteMutation,
-    SaveFavoriteMutationVariables
-  >,
+  accessToken: string,
+  consumerKey: string,
   variables: SaveFavoriteMutationVariables
 ): Promise<SaveFavoriteMutation> {
-  const { consumer_key, access_token, cookie } = auth;
-  const client = getClient(access_token, consumer_key);
+  const client = getClient(accessToken, consumerKey);
   return client.request<SaveFavoriteMutation, SaveFavoriteMutationVariables>(
     SaveFavoriteDocument,
     variables

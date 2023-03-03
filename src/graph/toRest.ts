@@ -1,13 +1,17 @@
 /**
  * method to convert graph responses to REST responses
  */
-import { callSavedItems } from './graphQLClient';
-import { GetSavedItemsQuery, Imageness, Videoness } from '../generated/graphql/types';
+
+import {
+  GetSavedItemsQuery,
+  Imageness,
+  Videoness,
+} from '../generated/graphql/types';
 import {
   GraphItem,
   GraphSavedItem,
   GraphSavedItemEdge,
-  ItemListObject,
+  ListItemObject,
   RestResponse,
 } from './types';
 
@@ -39,17 +43,35 @@ function convertHasVideo(videoStatus: Videoness) {
       return '0';
   }
 }
-const reduceItem = (savedItem: GraphSavedItemEdge): ItemListObject => {
-  switch (savedItem.node.item.__typename) {
+
+/**
+ * converts list to map
+ * @param input list of entities
+ * @param key key to assign the entity
+ */
+function listToMap<T>(input: T[], key: string): { [key: string]: T } {
+  return input.reduce((map, item) => {
+    map[item[key]] = item;
+    return map;
+  }, {});
+}
+
+/**
+ * converts saves.Items to REST response.
+ * sets the listItem as null for PendingItem
+ * @param savedItemEdge savedItem edge from the graph
+ */
+const reduceItem = (savedItemEdge: GraphSavedItemEdge): ListItemObject => {
+  switch (savedItemEdge.node.item.__typename) {
     case 'Item':
-      return convertGraphSavedItemToListObject(savedItem.node);
+      return convertGraphSavedItemToListObject(savedItemEdge.node);
     case 'PendingItem':
       return null;
   }
 };
 export function convertGraphSavedItemToListObject(
   savedItem: GraphSavedItem
-): ItemListObject {
+): ListItemObject {
   const nestedItem: GraphItem = savedItem.item as GraphItem;
   return {
     item_id: savedItem.id,
@@ -58,10 +80,10 @@ export function convertGraphSavedItemToListObject(
     given_title: nestedItem.title,
     favorite: savedItem.isFavorite ? '1' : '0',
     status: savedItem.isArchived ? '0' : '1',
-    time_added: savedItem._createdAt.toString(), //timestamp as string
-    time_updated: savedItem._updatedAt.toString(), //timestamp as string
-    time_read: savedItem.archivedAt.toString(), //timestamp as string
-    time_favorited: savedItem.favoritedAt.toString(), //timestamp as string
+    time_added: savedItem._createdAt?.toString(),
+    time_updated: savedItem._updatedAt?.toString(),
+    time_read: savedItem.archivedAt?.toString(),
+    time_favorited: savedItem.favoritedAt?.toString(),
     resolved_title: nestedItem.title,
     resolved_url: nestedItem.resolvedUrl,
     title: nestedItem.title,
@@ -70,21 +92,28 @@ export function convertGraphSavedItemToListObject(
     is_index: nestedItem.isIndex ? '1' : '0',
     has_video: convertHasVideo(nestedItem.hasVideo),
     has_image: convertHasImage(nestedItem.hasImage),
-    word_count: nestedItem.wordCount.toString(),
+    word_count: nestedItem.wordCount?.toString(),
     lang: nestedItem.language,
     time_to_read: nestedItem.timeToRead,
     amp_url: nestedItem.ampUrl,
-    top_image_url: nestedItem.topImage.url,
+    top_image_url: nestedItem.topImage?.url,
   };
 }
+
+/**
+ * converts graphql response to rest response
+ * todo: map top level fields as a part of v3/get implementation ticket
+ * @param response
+ */
 export function convertSavedItemsToRestResponse(
   response: GetSavedItemsQuery
 ): RestResponse {
   return {
     // todo: map top level fields
     cacheType: 'db',
-    list: response.user.savedItems.edges
-      .map(reduceItem)
-      .filter((s) => s !== null),
+    list: listToMap(
+      response.user.savedItems.edges.map(reduceItem).filter((s) => s !== null),
+      'item_id'
+    ),
   };
 }
