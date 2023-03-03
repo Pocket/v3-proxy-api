@@ -17,10 +17,21 @@ describe('convertSavedItemsToRestResponse', () => {
               cursor: 'some-cursor',
               node: {
                 __typename: 'SavedItem',
-                ...testSavedItemFragment,
+                ...testSavedItemFragment('id1'),
                 item: {
                   __typename: 'Item',
-                  ...testItemFragment,
+                  ...testItemFragment(`id1`),
+                },
+              },
+            },
+            {
+              cursor: 'some-cursor-2',
+              node: {
+                __typename: 'SavedItem',
+                ...testSavedItemFragment('id2'),
+                item: {
+                  __typename: 'Item',
+                  ...testItemFragment(`id2`),
                 },
               },
             },
@@ -30,7 +41,7 @@ describe('convertSavedItemsToRestResponse', () => {
     };
 
     expect(convertSavedItemsToRestResponse(graphResponse)).toEqual(
-      testV3GetResponse
+      testV3GetResponse(['id1', 'id2'])
     );
   });
 
@@ -44,7 +55,7 @@ describe('convertSavedItemsToRestResponse', () => {
               cursor: 'some-cursor',
               node: {
                 __typename: 'SavedItem',
-                ...testSavedItemFragment,
+                ...testSavedItemFragment(`id1`),
                 item: {
                   __typename: 'PendingItem',
                 },

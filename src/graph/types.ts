@@ -28,7 +28,7 @@ export type GraphSavedItem = GraphSavedItemEdge['node'];
 export type GraphItem = Extract<GraphSavedItem['item'], { __typename: 'Item' }>;
 
 export type RestResponse = {
-  //todo: investigate and validate other field types
+  //todo: add top level fields and sortId
   //e.g status, complete - as they are not mapped by developer portal docs
   list: { [key: string]: ListItemObject };
   cacheType: string;
