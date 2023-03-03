@@ -38,9 +38,6 @@ query getSavedItems($pagination: PaginationInput, $filters: SavedItemsFilter, $s
                             hasImage
                             language
                             ampUrl
-                            topImage {
-                                url
-                            }
                         }
                     }
                 }

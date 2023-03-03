@@ -2,20 +2,43 @@
  * method to convert graph responses to REST responses
  */
 import { callSavedItems } from './graphQLClient';
-import { GetSavedItemsQuery } from '../generated/graphql/types';
+import { GetSavedItemsQuery, Imageness, Videoness } from '../generated/graphql/types';
 import {
   GraphItem,
   GraphSavedItem,
   GraphSavedItemEdge,
   ItemListObject,
   RestResponse,
-  Unpack,
 } from './types';
 
 /**
  * process if the item fields are populated. if its pendingItem, we just return null
  * @param savedItem
  */
+
+function convertHasImage(imageStatus: Imageness) {
+  switch (imageStatus) {
+    case Imageness.IsImage:
+    case Imageness.HasImages:
+      return '1';
+    case Imageness.NoImages:
+      return '0';
+    default:
+      return '0';
+  }
+}
+
+function convertHasVideo(videoStatus: Videoness) {
+  switch (videoStatus) {
+    case Videoness.HasVideos:
+    case Videoness.IsVideo:
+      return '1';
+    case Videoness.NoVideos:
+      return '0';
+    default:
+      return '0';
+  }
+}
 const reduceItem = (savedItem: GraphSavedItemEdge): ItemListObject => {
   switch (savedItem.node.item.__typename) {
     case 'Item':
@@ -45,8 +68,8 @@ export function convertGraphSavedItemToListObject(
     excerpt: nestedItem.excerpt,
     is_article: nestedItem.isArticle ? '1' : '0',
     is_index: nestedItem.isIndex ? '1' : '0',
-    has_video: nestedItem.hasVideo ? '1' : '0',
-    has_image: nestedItem.hasImage ? '1' : '0',
+    has_video: convertHasVideo(nestedItem.hasVideo),
+    has_image: convertHasImage(nestedItem.hasImage),
     word_count: nestedItem.wordCount.toString(),
     lang: nestedItem.language,
     time_to_read: nestedItem.timeToRead,
