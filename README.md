@@ -41,7 +41,13 @@ npm run start:dev
 
 Our graphQL types are generated from the pocket graph v1 schema. 
 To pull the latest types, run:
-
 ```js
 npm run codegen
 ```
+
+## To add new graphQL type
+- Add your graphQL query or mutation to `src/graphql/queries/` folder
+- Run `npm run codegen`
+- This will generate types in `src/generated/graphql/types.ts`
+- For example, if you add a new query `getSavedItems`, you will see a new type `GetSavedItemsQuery` in `src/generated/graphql/types.ts`
+  - Likewise, if you passed any input variables to the query, you will see a new type `GetSavedItemsQueryVariables` in `src/generated/graphql/types.ts` 
