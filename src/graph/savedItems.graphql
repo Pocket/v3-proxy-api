@@ -7,9 +7,21 @@ query getSavedItems($pagination: PaginationInput, $filters: SavedItemsFilter, $s
                     id
                     status
                     url
+                    isFavorite
+                    isArchived
+                    _updatedAt
+                    _createdAt
+                    favoritedAt
+                    archivedAt
+                    tags {
+                        id
+                        name
+                    }
                     item {
                         __typename
                         ... on Item {
+                            itemId
+                            resolvedId
                             wordCount
                             topImage {
                                 url
@@ -20,6 +32,15 @@ query getSavedItems($pagination: PaginationInput, $filters: SavedItemsFilter, $s
                             givenUrl
                             excerpt
                             domain
+                            isArticle
+                            isIndex
+                            hasVideo
+                            hasImage
+                            language
+                            ampUrl
+                            topImage {
+                                url
+                            }
                         }
                     }
                 }

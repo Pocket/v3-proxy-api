@@ -2,17 +2,17 @@ import { GraphQLClient, Variables } from 'graphql-request';
 
 import {
   GetSavedItemsDocument,
-  GetSavedItemsQuery, GetSavedItemsQueryVariables,
+  GetSavedItemsQuery,
+  GetSavedItemsQueryVariables,
   PocketSave,
   SaveArchiveDocument,
-  SaveArchiveMutation, SaveFavoriteDocument,
+  SaveArchiveMutation,
+  SaveFavoriteDocument,
   SaveFavoriteMutation,
-  SaveFavoriteMutationVariables
+  SaveFavoriteMutationVariables,
 } from '../generated/graphql/types';
-import * as querystring from 'querystring';
 import { SaveArchiveMutationVariables } from '../generated/graphql/types';
 import { TypedDocumentNode } from '@graphql-typed-document-node/core';
-
 
 /**
  * gives a graphQLClient for pocket-graph url
@@ -21,9 +21,9 @@ import { TypedDocumentNode } from '@graphql-typed-document-node/core';
  * @param access_token accessToken of the user
  * @param consumer_key consumerKey assocuated with the user
  */
-export function getClient(access_token: string, consumer_key: string) {
+export function getClient(accessToken: string, consumerKey: string) {
   return new GraphQLClient(
-    `https://getpocket.com/graphql?consumer_key=${consumer_key}&access_token=${access_token}`,
+    `https://getpocket.com/graphql?consumer_key=${consumerKey}&access_token=${accessToken}`,
     {
       //fetch implementation used by node version,
       //can give custom fetch package
@@ -37,19 +37,21 @@ export function getClient(access_token: string, consumer_key: string) {
  * @param auth auth headers from the web repo
  * @param variables variables required for the mutation
  */
-export async function callSaveArchive (
+export async function callSaveArchive(
   auth: any,
-  document: TypedDocumentNode<SaveArchiveMutation, SaveArchiveMutationVariables>,
+  document: TypedDocumentNode<
+    SaveArchiveMutation,
+    SaveArchiveMutationVariables
+  >,
   variables: SaveArchiveMutationVariables
 ): Promise<SaveArchiveMutation> {
   const { consumer_key, access_token, cookie } = auth;
   const client = getClient(access_token, consumer_key);
   return client.request<SaveArchiveMutation, SaveArchiveMutationVariables>(
     SaveArchiveDocument,
-    variables,
+    variables
   );
 }
-
 
 /**
  * Calls saveFavorite mutation
@@ -59,7 +61,10 @@ export async function callSaveArchive (
  */
 export async function callSaveFavorite(
   auth: any,
-  document: TypedDocumentNode<SaveFavoriteMutation, SaveFavoriteMutationVariables>,
+  document: TypedDocumentNode<
+    SaveFavoriteMutation,
+    SaveFavoriteMutationVariables
+  >,
   variables: SaveFavoriteMutationVariables
 ): Promise<SaveFavoriteMutation> {
   const { consumer_key, access_token, cookie } = auth;
@@ -70,7 +75,6 @@ export async function callSaveFavorite(
   );
 }
 
-
 /**
  * function call to get saves
  * @param auth
@@ -78,32 +82,13 @@ export async function callSaveFavorite(
  * @param variables
  */
 export async function callSavedItems(
-  auth: any,
+  accessToken: string,
+  consumerKey: string,
   variables: GetSavedItemsQueryVariables
 ): Promise<GetSavedItemsQuery> {
-  const { consumer_key, access_token } = auth;
-  const client = getClient(access_token, consumer_key);
+  const client = getClient(accessToken, consumerKey);
   return client.request<GetSavedItemsQuery, GetSavedItemsQueryVariables>(
     GetSavedItemsDocument,
     variables
   );
-
-  //return callgraphQL<GetSavedItemsQuery, GetSavedItemsQueryVariables>(auth, GetSavedItemsDocument, variables);
 }
-
-//todo: ideally, we want to make a generic call but the variable throws error with generics
-// export function callgraphQL<T, V>(auth, document:TypedDocumentNode<T, V>, variables: V) {
-//   const { consumer_key, access_token, cookie } = auth;
-//   const client = new GraphQLClient(
-//     `https://getpocket.com/graphql?consumer_key=${consumer_key}&access_token=${access_token}`,
-//     {
-//       //fetch implementation used by node version,
-//       //can give custom fetch package
-//       fetch,
-//     }
-//   );
-//   return client.request<T, V>(
-//     document,
-//     variables,
-//   );
-// }
