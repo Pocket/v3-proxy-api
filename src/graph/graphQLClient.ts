@@ -33,11 +33,11 @@ export function getClient(accessToken: string, consumerKey: string) {
 /**
  * Calls saveArchive mutation
  *
- * @param auth auth headers from the web repo
+ * @param accessToken accessToken of the user
+ * @param consumerKey consumerKey associated with the user
  * @param variables variables required for the mutation
  */
 export async function callSaveArchive(
-  auth: any,
   accessToken: string,
   consumerKey: string,
   variables: SaveArchiveMutationVariables
@@ -52,7 +52,8 @@ export async function callSaveArchive(
 /**
  * Calls saveFavorite mutation
  *
- * @param auth auth headers from the web repo
+ * @param accessToken accessToken of the user
+ * @param consumerKey consumerKey associated with the user
  * @param variables variables required for the mutation
  */
 export async function callSaveFavorite(
@@ -69,9 +70,10 @@ export async function callSaveFavorite(
 
 /**
  * function call to get saves
- * @param auth
- * @param document
- * @param variables
+ *
+ * @param accessToken accessToken of the user
+ * @param consumerKey consumerKey associated with the user
+ * @param variables input variables required for the query
  */
 export async function callSavedItems(
   accessToken: string,
