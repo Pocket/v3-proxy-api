@@ -16,6 +16,7 @@ export const testSavedItemFragment = (id) => {
     _updatedAt: 1677818995,
     favoritedAt: 1677818995,
     archivedAt: 1677818995,
+    //can inject tagModel as parameter when mocking
     tags: [
       {
         id: `tag-${id}-1`,
@@ -58,7 +59,11 @@ export const testItemFragment = (id) => {
  * //todo: map top level fields and sort_id
  * @param ids
  */
-export const testV3GetResponse = (ids: string[]): RestResponse => {
+export const testV3GetResponse = (
+  ids: string[],
+  time_added?: string,
+  time_updated?: string
+): RestResponse => {
   const map: { [key: string]: ListItemObject } = {};
   ids.forEach((id) => {
     map[id] = {
@@ -68,8 +73,9 @@ export const testV3GetResponse = (ids: string[]): RestResponse => {
       given_title: 'title',
       favorite: '1',
       status: '0',
-      time_added: '1677818995',
-      time_updated: '1677818995',
+      //can add more test injection as we work on tickets
+      time_added: time_added ?? '1677818995',
+      time_updated: time_updated ?? '1677818995',
       time_read: '1677818995',
       time_favorited: '1677818995',
       resolved_title: 'title',
