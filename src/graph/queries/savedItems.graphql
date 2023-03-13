@@ -13,10 +13,6 @@ query getSavedItems($pagination: PaginationInput, $filters: SavedItemsFilter, $s
                     _createdAt
                     favoritedAt
                     archivedAt
-                    tags {
-                        id
-                        name
-                    }
                     item {
                         __typename
                         ... on Item {
