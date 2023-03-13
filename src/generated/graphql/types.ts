@@ -352,6 +352,18 @@ export type CreateShareableListItemInput = {
   url: Scalars['Url'];
 };
 
+/** Input data for creating a Shareable List Item during Shareable List creation. */
+export type CreateShareableListItemWithList = {
+  authors?: InputMaybe<Scalars['String']>;
+  excerpt?: InputMaybe<Scalars['String']>;
+  imageUrl?: InputMaybe<Scalars['Url']>;
+  itemId?: InputMaybe<Scalars['Float']>;
+  publisher?: InputMaybe<Scalars['String']>;
+  sortOrder: Scalars['Int'];
+  title?: InputMaybe<Scalars['String']>;
+  url: Scalars['Url'];
+};
+
 /** This type represents the information we need on a curated item. */
 export type CuratedInfo = {
   __typename?: 'CuratedInfo';
@@ -785,7 +797,10 @@ export type Mutation = {
    * Returns the list of `SavedItem` for which the tags were added
    */
   createSavedItemTags: Array<SavedItem>;
-  /** Creates a Shareable List. */
+  /**
+   * Creates a Shareable List. Takes in an optional listItemData parameter to create a ShareableListItem
+   * along with a ShareableList.
+   */
   createShareableList?: Maybe<ShareableList>;
   /** Creates a Shareable List Item. */
   createShareableListItem?: Maybe<ShareableListItem>;
@@ -829,10 +844,17 @@ export type Mutation = {
    * Note: if there is a new tag name in the SavedItemTagsInput, then the tag record will be created
    * Inputs a list of SavedItemTagsInput(ie. savedItemId and list of tag names)
    * Returns the SavedItem for which the tags have been modified.
+   * @deprecated use saveBatchUpdateTags
    */
   replaceSavedItemTags: Array<SavedItem>;
   /** Archives PocketSaves */
   saveArchive?: Maybe<SaveWriteMutationPayload>;
+  /**
+   * Batch update the Tags associated with a Save
+   * by adding new tags and deleting existing tags.
+   * Maximum of 150 operations (adds/deletes) per request.
+   */
+  saveBatchUpdateTags: SaveWriteMutationPayload;
   /**
    * Favorites PocketSaves
    * Accepts a list of PocketSave Ids that we want to favorite.
@@ -866,12 +888,14 @@ export type Mutation = {
    * SavedItem that had its Tag associations cleared.
    * Note that if this operation results in a Tag having no associations
    * to a SavedItem, the Tag object will be deleted.
+   * @deprecated use saveBatchUpdateTags
    */
   updateSavedItemRemoveTags: SavedItem;
   /**
    * Set the Tags that are associated with a SavedItem.
    * Will replace any existing Tag associations on the SavedItem.
    * To remove all Tags from a SavedItem, use `updateSavedItemRemoveTags`.
+   * @deprecated use saveBatchUpdateTags
    */
   updateSavedItemTags: SavedItem;
   /** Unarchives a SavedItem */
@@ -931,7 +955,8 @@ export type MutationCreateSavedItemTagsArgs = {
 
 /** Default Mutation Type */
 export type MutationCreateShareableListArgs = {
-  data: CreateShareableListInput;
+  listData: CreateShareableListInput;
+  listItemData?: InputMaybe<CreateShareableListItemWithList>;
 };
 
 
@@ -1004,6 +1029,13 @@ export type MutationReplaceSavedItemTagsArgs = {
 /** Default Mutation Type */
 export type MutationSaveArchiveArgs = {
   id: Array<Scalars['ID']>;
+  timestamp: Scalars['ISOString'];
+};
+
+
+/** Default Mutation Type */
+export type MutationSaveBatchUpdateTagsArgs = {
+  input: Array<SaveUpdateTagsInput>;
   timestamp: Scalars['ISOString'];
 };
 
@@ -1379,11 +1411,15 @@ export type Query = {
    * (the user ID will be coming through with the headers)
    */
   shareableList?: Maybe<ShareableList>;
+  /** Returns a publicly-shared Shareable List. Note: this query does not require user authentication. */
+  shareableListPublic?: Maybe<ShareableList>;
   /**
    * Looks up and returns an array of Shareable Lists for a given user ID for a given user.
    * (the user ID will be coming through with the headers)
    */
   shareableLists: Array<ShareableList>;
+  /** Determines if the userid passed in the headers has access to the pilot program. */
+  shareableListsPilotUser: Scalars['Boolean'];
   /** This is a future improvement, not needed now. */
   surface: Surface;
   /** Look up the SyndicatedArticle by a slug */
@@ -1543,6 +1579,15 @@ export type QueryShareableListArgs = {
  * Default root level query type. All authorization checks are done in these queries.
  * TODO: These belong in a seperate User Service that provides a User object (the user settings will probably exist there too)
  */
+export type QueryShareableListPublicArgs = {
+  externalId: Scalars['ID'];
+};
+
+
+/**
+ * Default root level query type. All authorization checks are done in these queries.
+ * TODO: These belong in a seperate User Service that provides a User object (the user settings will probably exist there too)
+ */
 export type QuerySurfaceArgs = {
   id: Scalars['ID'];
 };
@@ -1677,6 +1722,18 @@ export type SaveItemSearchHighlights = {
 
 /** All types in this union should implement BaseError, for client fallback */
 export type SaveMutationError = NotFound | SyncConflict;
+
+export type SaveUpdateTagsInput = {
+  /**
+   * Tags to add, by name text; if a Tag
+   * with the given name does not exist,
+   * one will be created.
+   */
+  addTagNames: Array<Scalars['String']>;
+  /** Tags to remove, by ID */
+  removeTagIds: Array<Scalars['ID']>;
+  saveId: Scalars['ID'];
+};
 
 /** Payload for mutations that create or update Saves */
 export type SaveWriteMutationPayload = {
@@ -2636,9 +2693,9 @@ export type GetSavedItemsQueryVariables = Exact<{
 }>;
 
 
-export type GetSavedItemsQuery = { __typename?: 'Query', user?: { __typename?: 'User', savedItems?: { __typename?: 'SavedItemConnection', edges?: Array<{ __typename?: 'SavedItemEdge', cursor: string, node?: { __typename?: 'SavedItem', id: string, status?: SavedItemStatus | null, url: string, isFavorite: boolean, isArchived: boolean, _updatedAt?: number | null, _createdAt: number, favoritedAt?: number | null, archivedAt?: number | null, tags?: Array<{ __typename?: 'Tag', id: string, name: string }> | null, item: { __typename: 'Item', itemId: string, resolvedId?: string | null, wordCount?: number | null, title?: string | null, timeToRead?: number | null, resolvedUrl?: any | null, givenUrl: any, excerpt?: string | null, domain?: string | null, isArticle?: boolean | null, isIndex?: boolean | null, hasVideo?: Videoness | null, hasImage?: Imageness | null, language?: string | null, ampUrl?: any | null, topImage?: { __typename?: 'Image', url: any } | null } | { __typename: 'PendingItem' } } | null } | null> | null } | null } | null };
+export type GetSavedItemsQuery = { __typename?: 'Query', user?: { __typename?: 'User', savedItems?: { __typename?: 'SavedItemConnection', edges?: Array<{ __typename?: 'SavedItemEdge', cursor: string, node?: { __typename?: 'SavedItem', id: string, status?: SavedItemStatus | null, url: string, isFavorite: boolean, isArchived: boolean, _updatedAt?: number | null, _createdAt: number, favoritedAt?: number | null, archivedAt?: number | null, item: { __typename: 'Item', itemId: string, resolvedId?: string | null, wordCount?: number | null, title?: string | null, timeToRead?: number | null, resolvedUrl?: any | null, givenUrl: any, excerpt?: string | null, domain?: string | null, isArticle?: boolean | null, isIndex?: boolean | null, hasVideo?: Videoness | null, hasImage?: Imageness | null, language?: string | null, ampUrl?: any | null, topImage?: { __typename?: 'Image', url: any } | null } | { __typename: 'PendingItem' } } | null } | null> | null } | null } | null };
 
 
 export const SaveArchiveDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"saveArchive"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"timestamp"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ISOString"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"saveArchive"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}},{"kind":"Argument","name":{"kind":"Name","value":"timestamp"},"value":{"kind":"Variable","name":{"kind":"Name","value":"timestamp"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"save"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"favorite"}},{"kind":"Field","name":{"kind":"Name","value":"favoritedAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}},{"kind":"Field","name":{"kind":"Name","value":"errors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"BaseError"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"path"}},{"kind":"Field","name":{"kind":"Name","value":"message"}}]}}]}}]}}]}}]} as unknown as DocumentNode<SaveArchiveMutation, SaveArchiveMutationVariables>;
 export const SaveFavoriteDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"saveFavorite"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"timestamp"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ISOString"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"saveFavorite"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}},{"kind":"Argument","name":{"kind":"Name","value":"timestamp"},"value":{"kind":"Variable","name":{"kind":"Name","value":"timestamp"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"save"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"favorite"}},{"kind":"Field","name":{"kind":"Name","value":"favoritedAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}},{"kind":"Field","name":{"kind":"Name","value":"errors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"BaseError"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"path"}},{"kind":"Field","name":{"kind":"Name","value":"message"}}]}}]}}]}}]}}]} as unknown as DocumentNode<SaveFavoriteMutation, SaveFavoriteMutationVariables>;
-export const GetSavedItemsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getSavedItems"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"PaginationInput"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filters"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"SavedItemsFilter"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"sort"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"SavedItemsSort"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"savedItems"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"pagination"},"value":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}}},{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filters"}}},{"kind":"Argument","name":{"kind":"Name","value":"sort"},"value":{"kind":"Variable","name":{"kind":"Name","value":"sort"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"edges"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"cursor"}},{"kind":"Field","name":{"kind":"Name","value":"node"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"isFavorite"}},{"kind":"Field","name":{"kind":"Name","value":"isArchived"}},{"kind":"Field","name":{"kind":"Name","value":"_updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"_createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"favoritedAt"}},{"kind":"Field","name":{"kind":"Name","value":"archivedAt"}},{"kind":"Field","name":{"kind":"Name","value":"tags"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}},{"kind":"Field","name":{"kind":"Name","value":"item"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Item"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"itemId"}},{"kind":"Field","name":{"kind":"Name","value":"resolvedId"}},{"kind":"Field","name":{"kind":"Name","value":"wordCount"}},{"kind":"Field","name":{"kind":"Name","value":"topImage"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"url"}}]}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"timeToRead"}},{"kind":"Field","name":{"kind":"Name","value":"resolvedUrl"}},{"kind":"Field","name":{"kind":"Name","value":"givenUrl"}},{"kind":"Field","name":{"kind":"Name","value":"excerpt"}},{"kind":"Field","name":{"kind":"Name","value":"domain"}},{"kind":"Field","name":{"kind":"Name","value":"isArticle"}},{"kind":"Field","name":{"kind":"Name","value":"isIndex"}},{"kind":"Field","name":{"kind":"Name","value":"hasVideo"}},{"kind":"Field","name":{"kind":"Name","value":"hasImage"}},{"kind":"Field","name":{"kind":"Name","value":"language"}},{"kind":"Field","name":{"kind":"Name","value":"ampUrl"}}]}}]}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<GetSavedItemsQuery, GetSavedItemsQueryVariables>;
+export const GetSavedItemsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getSavedItems"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"PaginationInput"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filters"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"SavedItemsFilter"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"sort"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"SavedItemsSort"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"savedItems"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"pagination"},"value":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}}},{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filters"}}},{"kind":"Argument","name":{"kind":"Name","value":"sort"},"value":{"kind":"Variable","name":{"kind":"Name","value":"sort"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"edges"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"cursor"}},{"kind":"Field","name":{"kind":"Name","value":"node"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"isFavorite"}},{"kind":"Field","name":{"kind":"Name","value":"isArchived"}},{"kind":"Field","name":{"kind":"Name","value":"_updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"_createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"favoritedAt"}},{"kind":"Field","name":{"kind":"Name","value":"archivedAt"}},{"kind":"Field","name":{"kind":"Name","value":"item"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Item"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"itemId"}},{"kind":"Field","name":{"kind":"Name","value":"resolvedId"}},{"kind":"Field","name":{"kind":"Name","value":"wordCount"}},{"kind":"Field","name":{"kind":"Name","value":"topImage"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"url"}}]}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"timeToRead"}},{"kind":"Field","name":{"kind":"Name","value":"resolvedUrl"}},{"kind":"Field","name":{"kind":"Name","value":"givenUrl"}},{"kind":"Field","name":{"kind":"Name","value":"excerpt"}},{"kind":"Field","name":{"kind":"Name","value":"domain"}},{"kind":"Field","name":{"kind":"Name","value":"isArticle"}},{"kind":"Field","name":{"kind":"Name","value":"isIndex"}},{"kind":"Field","name":{"kind":"Name","value":"hasVideo"}},{"kind":"Field","name":{"kind":"Name","value":"hasImage"}},{"kind":"Field","name":{"kind":"Name","value":"language"}},{"kind":"Field","name":{"kind":"Name","value":"ampUrl"}}]}}]}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<GetSavedItemsQuery, GetSavedItemsQueryVariables>;

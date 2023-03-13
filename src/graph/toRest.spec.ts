@@ -5,6 +5,9 @@ import {
   testV3GetResponse,
   testItemFragment,
   testSavedItemFragment,
+  mockSavedItemFragment,
+  seedDataRest,
+  mockItemFragment,
 } from './fixtures';
 
 describe('convertSavedItemsToRestResponse', () => {
@@ -17,10 +20,15 @@ describe('convertSavedItemsToRestResponse', () => {
               cursor: 'some-cursor',
               node: {
                 __typename: 'SavedItem',
-                ...testSavedItemFragment('id1'),
+                ...testSavedItemFragment({
+                  ...mockSavedItemFragment,
+                  id: `id1`,
+                }),
                 item: {
-                  __typename: 'Item',
-                  ...testItemFragment(`id1`),
+                  ...testItemFragment({
+                    ...mockItemFragment,
+                    itemId: `id1`,
+                  }),
                 },
               },
             },
@@ -28,10 +36,15 @@ describe('convertSavedItemsToRestResponse', () => {
               cursor: 'some-cursor-2',
               node: {
                 __typename: 'SavedItem',
-                ...testSavedItemFragment('id2'),
+                ...testSavedItemFragment({
+                  ...mockSavedItemFragment,
+                  id: `id2`,
+                }),
                 item: {
-                  __typename: 'Item',
-                  ...testItemFragment(`id2`),
+                  ...testItemFragment({
+                    ...mockItemFragment,
+                    itemId: `id2`,
+                  }),
                 },
               },
             },
@@ -41,7 +54,10 @@ describe('convertSavedItemsToRestResponse', () => {
     };
 
     expect(convertSavedItemsToRestResponse(graphResponse)).toEqual(
-      testV3GetResponse(['id1', 'id2'])
+      testV3GetResponse({
+        ...seedDataRest,
+        ids: ['id1', 'id2'],
+      })
     );
   });
 
@@ -55,7 +71,10 @@ describe('convertSavedItemsToRestResponse', () => {
               cursor: 'some-cursor',
               node: {
                 __typename: 'SavedItem',
-                ...testSavedItemFragment(`id1`),
+                ...testSavedItemFragment({
+                  ...mockSavedItemFragment,
+                  id: `id1`,
+                }),
                 item: {
                   __typename: 'PendingItem',
                 },
