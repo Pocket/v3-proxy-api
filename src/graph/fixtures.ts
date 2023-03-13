@@ -77,12 +77,23 @@ export const mockItemFragment: ItemFragment = {
   },
 };
 
+/**
+ * function to return saved item fragment
+ * used default mockSavedItemFragment if values are not added explicitly
+ * @param mockInput mock saved item fragment
+ */
 export const testSavedItemFragment = (
   mockInput: SavedItemFragment = mockSavedItemFragment
 ): SavedItemFragment => {
   return mockInput;
 };
 
+/**
+ * function to return test Item fragment
+ * used default mockItemFragment if values are not added explicitly
+ * todo: refactor mockInput types as you add more fields other than itemIds
+ * @param mockInput necessary inputs required for populating mock Item
+ */
 export const testItemFragment = (mockInput: {
   itemId: string;
   __typename: 'PendingItem' | 'Item';
