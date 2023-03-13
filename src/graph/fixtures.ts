@@ -29,10 +29,7 @@ export const seedDataRest: MockListItemObject = Object.freeze({
   top_image_url: 'https://test.com/image.jpg',
 });
 
-export type SavedItemFragment = Omit<
-  GraphSavedItemEdge['node'],
-  'item'
->;
+export type SavedItemFragment = Omit<GraphSavedItemEdge['node'], 'item'>;
 export const mockSavedItemFragment: SavedItemFragment = {
   __typename: 'SavedItem',
   id: '1',
