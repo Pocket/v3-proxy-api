@@ -17,13 +17,21 @@ import config from '../config';
  * gives a graphQLClient for pocket-graph url
  *
  * This client initializes a `graphql-request` client
- * @param access_token accessToken of the user
- * @param consumer_key consumerKey assocuated with the user
+ * @param headers any headers received by proxy is just pass through to web graphQL proxy.
+ * @param accessToken accessToken of the user
+ * @param consumerKey consumerKey associated with the user
  */
-export function getClient(accessToken: string, consumerKey: string) {
+export function getClient(
+  headers: any,
+  accessToken: string,
+  consumerKey: string
+) {
   return new GraphQLClient(
     `${config.graphQLProxy}?consumer_key=${consumerKey}&access_token=${accessToken}`,
     {
+      headers: {
+        ...headers,
+      },
       //fetch implementation used by node version,
       //can give custom fetch package
       fetch,
@@ -36,13 +44,15 @@ export function getClient(accessToken: string, consumerKey: string) {
  * @param accessToken accessToken of the user
  * @param consumerKey consumerKey associated with the user
  * @param variables variables required for the mutation
+ * @param headers any headers received by proxy is just pass through to web graphQL proxy.
  */
 export async function callSaveArchive(
   accessToken: string,
   consumerKey: string,
+  headers: any,
   variables: SaveArchiveMutationVariables
 ): Promise<SaveArchiveMutation> {
-  const client = getClient(accessToken, consumerKey);
+  const client = getClient(accessToken, consumerKey, headers);
   return client.request<SaveArchiveMutation, SaveArchiveMutationVariables>(
     SaveArchiveDocument,
     variables
@@ -55,13 +65,15 @@ export async function callSaveArchive(
  * @param accessToken accessToken of the user
  * @param consumerKey consumerKey associated with the user
  * @param variables variables required for the mutation
+ * @param headers any headers received by proxy is just pass through to web graphQL proxy.
  */
 export async function callSaveFavorite(
   accessToken: string,
   consumerKey: string,
+  headers: any,
   variables: SaveFavoriteMutationVariables
 ): Promise<SaveFavoriteMutation> {
-  const client = getClient(accessToken, consumerKey);
+  const client = getClient(accessToken, consumerKey, headers);
   return client.request<SaveFavoriteMutation, SaveFavoriteMutationVariables>(
     SaveFavoriteDocument,
     variables
@@ -73,14 +85,16 @@ export async function callSaveFavorite(
  *
  * @param accessToken accessToken of the user
  * @param consumerKey consumerKey associated with the user
+ * @param headers any headers received by proxy is just pass through to web graphQL proxy.
  * @param variables input variables required for the query
  */
 export async function callSavedItems(
   accessToken: string,
   consumerKey: string,
+  headers: any,
   variables: GetSavedItemsQueryVariables
 ): Promise<GetSavedItemsQuery> {
-  const client = getClient(accessToken, consumerKey);
+  const client = getClient(accessToken, consumerKey, headers);
   return client.request<GetSavedItemsQuery, GetSavedItemsQueryVariables>(
     GetSavedItemsDocument,
     variables

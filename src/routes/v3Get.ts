@@ -18,16 +18,16 @@ const router: Router = Router();
 router.post('/', async (req: Request, res: Response) => {
   try {
     const variables = setSaveInputsFromGetCall(req.params);
-    //todo: validate request params. for invalid request params,
-    // throw 400 and appropriate error-code
-    const accessToken = req.headers.access_token as string;
-    const consumerKey = req.headers.consumer_key as string;
+    const headers = req.headers;
+    const accessToken = req.body.access_token as string;
+    const consumerKey = req.body.consumer_key as string;
 
     if (!accessToken || !consumerKey) {
       //todo: set appropriate error code and error message in header
-      return res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).send({ error: 'Unauthorized' });
     }
-    return res.json(await processV3call(accessToken, consumerKey, variables));
+
+    return await processV3call(accessToken, consumerKey, headers, variables);
   } catch (err) {
     const errMessage = `v3/get: ${err}`;
     console.log(errMessage);
@@ -43,13 +43,20 @@ router.post('/', async (req: Request, res: Response) => {
  * @param accessToken user access token
  * @param consumerKey user consumer key
  * @param variables input variables required for the graphql query
+ * @param headers request headers. treated as blackbox pass through for proxy
  */
 export async function processV3call(
   accessToken: string,
   consumerKey: string,
+  headers: any,
   variables: UserSavedItemsArgs
 ) {
-  const response = await callSavedItems(accessToken, consumerKey, variables);
+  const response = await callSavedItems(
+    accessToken,
+    consumerKey,
+    headers,
+    variables
+  );
   return convertSavedItemsToRestResponse(response);
 }
 
