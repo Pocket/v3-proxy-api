@@ -22,15 +22,17 @@ import config from '../config';
  * @param consumerKey consumerKey associated with the user
  */
 export function getClient(
-  headers: any,
   accessToken: string,
-  consumerKey: string
+  consumerKey: string,
+  headers: any
 ) {
   return new GraphQLClient(
     `${config.graphQLProxy}?consumer_key=${consumerKey}&access_token=${accessToken}`,
     {
+      //todo : investigate: ideally, we should pass any headers.
+      //however this fails if we dont explicitly pass cookie header
       headers: {
-        ...headers,
+        cookie: headers?.cookie,
       },
       //fetch implementation used by node version,
       //can give custom fetch package

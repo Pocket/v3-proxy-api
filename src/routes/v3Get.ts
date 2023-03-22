@@ -17,20 +17,31 @@ const router: Router = Router();
 
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const variables = setSaveInputsFromGetCall(req.params);
+    //console.log(`entering post: req.body: ${JSON.stringify(req.body)}`);
+    const variables = setSaveInputsFromGetCall(req.body);
+    //todo: if we pass auth headers, the web repo fails the call
+    //probably because of the fetch implementation
     const headers = req.headers;
     const accessToken = req.body.access_token as string;
     const consumerKey = req.body.consumer_key as string;
 
-    if(!accessToken) {
-      return res.status(401).header(getErrorHeaders(ErrorCodes.INVALID_ACCESS_TOKEN)).send({})
+    if (!accessToken) {
+      return res
+        .status(401)
+        .header(getErrorHeaders(ErrorCodes.INVALID_ACCESS_TOKEN))
+        .send({});
     }
 
     if (!consumerKey) {
-      return res.status(400).header(getErrorHeaders(ErrorCodes.INVALID_CONSUMER_KEY)).send({})
+      return res
+        .status(400)
+        .header(getErrorHeaders(ErrorCodes.INVALID_CONSUMER_KEY))
+        .send({});
     }
 
-    return await processV3call(accessToken, consumerKey, headers, variables);
+    return res.json(
+      await processV3call(accessToken, consumerKey, headers, variables)
+    );
   } catch (err) {
     const errMessage = `v3/get: ${err}`;
     console.log(errMessage);

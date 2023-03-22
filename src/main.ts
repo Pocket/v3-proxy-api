@@ -13,7 +13,6 @@ Sentry.init({
 // would it make sense to add them here or directly export/add to this package
 export const app: Express = express();
 app.use(express.json());
-
 app.get('/.well-known/server-health', (req, res) => {
   res.status(200).send('ok');
 });
