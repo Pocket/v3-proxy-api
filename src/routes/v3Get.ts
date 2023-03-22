@@ -1,10 +1,10 @@
-import { Router } from 'express';
-import { Request, Response } from 'express';
+import { Request, Response, Router } from 'express';
 import { setSaveInputsFromGetCall } from '../graph/toGraphQL';
 import { callSavedItems } from '../graph/graphQLClient';
 import { convertSavedItemsToRestResponse } from '../graph/toRest';
 import { UserSavedItemsArgs } from '../generated/graphql/types';
 import * as Sentry from '@sentry/node';
+import { ErrorCodes, getErrorHeaders } from './errorMapper';
 
 const router: Router = Router();
 // v3/get is a POST request
@@ -22,9 +22,12 @@ router.post('/', async (req: Request, res: Response) => {
     const accessToken = req.body.access_token as string;
     const consumerKey = req.body.consumer_key as string;
 
-    if (!accessToken || !consumerKey) {
-      //todo: set appropriate error code and error message in header
-      return res.status(401).send({ error: 'Unauthorized' });
+    if(!accessToken) {
+      return res.status(401).header(getErrorHeaders(ErrorCodes.INVALID_ACCESS_TOKEN)).send({})
+    }
+
+    if (!consumerKey) {
+      return res.status(400).header(getErrorHeaders(ErrorCodes.INVALID_CONSUMER_KEY)).send({})
     }
 
     return await processV3call(accessToken, consumerKey, headers, variables);

@@ -15,15 +15,27 @@ describe('v3Get', () => {
       .post('/v3/get')
       .send({ consumer_key: 'test' });
     expect(response.status).toBe(401);
-    expect(response.body.error).toBe('Unauthorized');
+    const expectedHeaders = {
+      'X-Error-Code': "107",
+      'X-Error': 'A valid access token is required to access the requested API endpoint.',
+
+    }
+    expect(response.headers['x-error-code']).toBe(expectedHeaders['X-Error-Code'])
+    expect(response.headers['x-error']).toBe(expectedHeaders['X-Error'])
   });
 
   it('should throw 401 for missing consumer_key', async () => {
     const response = await request(app)
       .post('/v3/get')
-      .send({ consumer_key: 'test' });
-    expect(response.status).toBe(401);
-    expect(response.body.error).toBe('Unauthorized');
+      .send({ access_token: 'test' });
+    expect(response.status).toBe(400);
+    const expectedHeaders = {
+      'X-Error-Code': "132",
+      'X-Error': 'Missing API key. Get an API key at http://getpocket.com/api',
+
+    }
+    expect(response.headers['x-error-code']).toBe(expectedHeaders['X-Error-Code'])
+    expect(response.headers['x-error']).toBe(expectedHeaders['X-Error'])
   });
 
   it('should log to Sentry and throw 5xx for unknown errors', async () => {
