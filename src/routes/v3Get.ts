@@ -4,40 +4,36 @@ import { callSavedItems } from '../graph/graphQLClient';
 import { convertSavedItemsToRestResponse } from '../graph/toRest';
 import { UserSavedItemsArgs } from '../generated/graphql/types';
 import * as Sentry from '@sentry/node';
-import { ErrorCodes, getErrorHeaders } from './errorMapper';
 
 const router: Router = Router();
-// v3/get is a POST request
-/**
- * function to process v3/get call
- * Note: for now, we are fetching access_token and consumer_key from headers
- * todo: we might have to cover all forms of auth once before we
- * redirect request directly from dotcom gateway
- */
+//v3 in web repo can support both POST and GET request.
+//proxy need to be backward compatible with both of them
+
+router.get('/', async (req: Request, res: Response) => {
+  try {
+    const variables = setSaveInputsFromGetCall(req.params);
+    const headers = req.headers;
+    const accessToken = req.params.access_token as string;
+    const consumerKey = req.params.consumer_key as string;
+    return res.json(
+      await processV3call(accessToken, consumerKey, headers, variables)
+    );
+  } catch (err) {
+    const errMessage = `v3/get: ${err}`;
+    console.log(errMessage);
+    Sentry.addBreadcrumb({ message: errMessage });
+    Sentry.captureException(err);
+    //todo: set error code and error message in header
+    return res.status(500).send({ error: errMessage });
+  }
+});
 
 router.post('/', async (req: Request, res: Response) => {
   try {
-    //console.log(`entering post: req.body: ${JSON.stringify(req.body)}`);
     const variables = setSaveInputsFromGetCall(req.body);
-    //todo: if we pass auth headers, the web repo fails the call
-    //probably because of the fetch implementation
     const headers = req.headers;
     const accessToken = req.body.access_token as string;
     const consumerKey = req.body.consumer_key as string;
-
-    if (!accessToken) {
-      return res
-        .status(401)
-        .header(getErrorHeaders(ErrorCodes.INVALID_ACCESS_TOKEN))
-        .send({});
-    }
-
-    if (!consumerKey) {
-      return res
-        .status(400)
-        .header(getErrorHeaders(ErrorCodes.INVALID_CONSUMER_KEY))
-        .send({});
-    }
 
     return res.json(
       await processV3call(accessToken, consumerKey, headers, variables)

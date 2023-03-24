@@ -26,19 +26,30 @@ export function getClient(
   consumerKey: string,
   headers: any
 ) {
-  return new GraphQLClient(
-    `${config.graphQLProxy}?consumer_key=${consumerKey}&access_token=${accessToken}`,
-    {
-      //todo : investigate: ideally, we should pass any headers.
-      //however this fails if we dont explicitly pass cookie header
-      headers: {
-        cookie: headers?.cookie,
-      },
-      //fetch implementation used by node version,
-      //can give custom fetch package
-      fetch,
-    }
-  );
+  //these headers are not compatible with GraphQLClient's fetch.
+  //they throw an error instead, so ignoring them
+  // headers might include cookie, some observability traceIds, apollo studio headers
+  // so, we are implicitly passing them and removing only those that causes issues
+  delete headers['content-length'];
+  delete headers['content-type'];
+  delete headers['user-agent'];
+  delete headers['host'];
+  delete headers['accept-encoding'];
+  delete headers['connection'];
+
+  let url: string;
+  //to allow both access token/consumer key based auth or cookie based auth
+  if (accessToken && consumerKey) {
+    url = `${config.graphQLProxy}?consumer_key=${consumerKey}&access_token=${accessToken}`;
+  } else {
+    url = config.graphQLProxy;
+  }
+  return new GraphQLClient(url, {
+    headers: headers,
+    //fetch implementation used by node version,
+    //can give custom fetch package
+    fetch,
+  });
 }
 /**
  * Calls saveArchive mutation
