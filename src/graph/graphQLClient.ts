@@ -12,6 +12,7 @@ import {
 } from '../generated/graphql/types';
 import { SaveArchiveMutationVariables } from '../generated/graphql/types';
 import config from '../config';
+import * as Sentry from '@sentry/node';
 
 /**
  * gives a graphQLClient for pocket-graph url
@@ -38,18 +39,27 @@ export function getClient(
   delete headers['connection'];
 
   let url: string;
+
   //to allow both access token/consumer key based auth or cookie based auth
   if (accessToken && consumerKey) {
     url = `${config.graphQLProxy}?consumer_key=${consumerKey}&access_token=${accessToken}`;
   } else {
-    url = config.graphQLProxy;
+    url = `${config.graphQLProxy}/`;
   }
-  return new GraphQLClient(url, {
-    headers: headers,
-    //fetch implementation used by node version,
-    //can give custom fetch package
-    fetch,
-  });
+
+  try {
+    return new GraphQLClient(url, {
+      headers: headers,
+      //fetch implementation used by node version,
+      //can give custom fetch package
+      fetch,
+    });
+  } catch (e) {
+    const err = `graphQLClient creation failed:` + JSON.stringify(e);
+    Sentry.captureException(err);
+    console.log(err);
+    throw err;
+  }
 }
 /**
  * Calls saveArchive mutation
@@ -107,9 +117,16 @@ export async function callSavedItems(
   headers: any,
   variables: GetSavedItemsQueryVariables
 ): Promise<GetSavedItemsQuery> {
-  const client = getClient(accessToken, consumerKey, headers);
-  return client.request<GetSavedItemsQuery, GetSavedItemsQueryVariables>(
-    GetSavedItemsDocument,
-    variables
-  );
+  try {
+    const client = getClient(accessToken, consumerKey, headers);
+    return client.request<GetSavedItemsQuery, GetSavedItemsQueryVariables>(
+      GetSavedItemsDocument,
+      variables
+    );
+  } catch (e) {
+    const err = `fails at callSavedItems` + JSON.stringify(e);
+    Sentry.captureException(err);
+    console.error(err);
+    throw err;
+  }
 }

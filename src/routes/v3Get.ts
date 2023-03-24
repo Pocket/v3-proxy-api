@@ -4,6 +4,7 @@ import { callSavedItems } from '../graph/graphQLClient';
 import { convertSavedItemsToRestResponse } from '../graph/toRest';
 import { UserSavedItemsArgs } from '../generated/graphql/types';
 import * as Sentry from '@sentry/node';
+import { ErrorCodes, getErrorHeaders } from './errorMapper';
 
 const router: Router = Router();
 //v3 in web repo can support both POST and GET request.
@@ -13,18 +14,20 @@ router.get('/', async (req: Request, res: Response) => {
   try {
     const variables = setSaveInputsFromGetCall(req.params);
     const headers = req.headers;
-    const accessToken = req.params.access_token as string;
-    const consumerKey = req.params.consumer_key as string;
+    const accessToken = (req.body.access_token as string) ?? null;
+    const consumerKey = (req.body.consumer_key as string) ?? null;
     return res.json(
       await processV3call(accessToken, consumerKey, headers, variables)
     );
   } catch (err) {
-    const errMessage = `v3/get: ${err}`;
+    const errMessage = `GET: v3/get: ${err}`;
     console.log(errMessage);
     Sentry.addBreadcrumb({ message: errMessage });
     Sentry.captureException(err);
-    //todo: set error code and error message in header
-    return res.status(500).send({ error: errMessage });
+    return res
+      .status(500)
+      .header(getErrorHeaders(ErrorCodes.INTERNAL_SERVER_ERROR))
+      .send({ error: errMessage });
   }
 });
 
@@ -32,19 +35,21 @@ router.post('/', async (req: Request, res: Response) => {
   try {
     const variables = setSaveInputsFromGetCall(req.body);
     const headers = req.headers;
-    const accessToken = req.body.access_token as string;
-    const consumerKey = req.body.consumer_key as string;
+    const accessToken = (req.body.access_token as string) ?? null;
+    const consumerKey = (req.body.consumer_key as string) ?? null;
 
     return res.json(
       await processV3call(accessToken, consumerKey, headers, variables)
     );
   } catch (err) {
-    const errMessage = `v3/get: ${err}`;
+    const errMessage = `POST: v3/get: ${err}`;
     console.log(errMessage);
     Sentry.addBreadcrumb({ message: errMessage });
     Sentry.captureException(err);
-    //todo: set error code and error message in header
-    return res.status(500).send({ error: errMessage });
+    return res
+      .status(500)
+      .header(getErrorHeaders(ErrorCodes.INTERNAL_SERVER_ERROR))
+      .send({ error: errMessage });
   }
 });
 
