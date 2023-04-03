@@ -44,7 +44,7 @@ export function getClient(
   if (accessToken && consumerKey) {
     url = `${config.graphQLProxy}?consumer_key=${consumerKey}&access_token=${accessToken}`;
   } else {
-    url = `${config.graphQLProxy}/`;
+    url = `${config.graphQLProxy}/?consumer_key=${consumerKey}`;
   }
 
   try {
