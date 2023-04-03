@@ -3,6 +3,7 @@ import express, { Express } from 'express';
 import config from './config';
 
 import v3GetRouter from './routes/v3Get';
+import bodyParser from 'body-parser';
 
 Sentry.init({
   ...config.sentry,
@@ -12,7 +13,10 @@ Sentry.init({
 //todo: set telemetry -
 // would it make sense to add them here or directly export/add to this package
 export const app: Express = express();
-app.use(express.json());
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false }));
+// parse application/json
+app.use(bodyParser.json());
 app.get('/.well-known/server-health', (req, res) => {
   res.status(200).send('ok');
 });
