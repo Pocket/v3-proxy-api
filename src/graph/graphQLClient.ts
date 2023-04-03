@@ -55,10 +55,10 @@ export function getClient(
       fetch,
     });
   } catch (e) {
-    const err = `graphQLClient creation failed:` + JSON.stringify(e);
-    Sentry.captureException(err);
-    console.log(err);
-    throw err;
+    Sentry.addBreadcrumb({ message: `graphQLClient creation failed:` });
+    Sentry.captureException(e);
+    console.log(e);
+    throw e;
   }
 }
 /**
@@ -124,9 +124,9 @@ export async function callSavedItems(
       variables
     );
   } catch (e) {
-    const err = `fails at callSavedItems` + JSON.stringify(e);
-    Sentry.captureException(err);
-    console.error(err);
-    throw err;
+    Sentry.addBreadcrumb({ message: `callSavedItem failed:` });
+    Sentry.captureException(e);
+    console.log(e);
+    throw e;
   }
 }
