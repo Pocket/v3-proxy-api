@@ -14,8 +14,8 @@ router.get('/', async (req: Request, res: Response) => {
   try {
     const variables = setSaveInputsFromGetCall(req.params);
     const headers = req.headers;
-    const accessToken = (req.body.access_token as string) ?? null;
-    const consumerKey = (req.body.consumer_key as string) ?? null;
+    const accessToken = (req.params.access_token as string) ?? null;
+    const consumerKey = (req.params.consumer_key as string) ?? null;
     return res.json(
       await processV3call(accessToken, consumerKey, headers, variables)
     );
