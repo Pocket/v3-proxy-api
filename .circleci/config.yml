@@ -47,27 +47,15 @@ only_dev: &only_dev
 jobs:
   build:
     docker:
-      - image: node:18@sha256:f27e3f4c8b5719cb9816084475d687a283c59149f3d11a7aa45b675fea56bed0
+      - image: cimg/node:16.20
     steps:
       - checkout
       # Define the working directory for this job
       - attach_workspace:
           at: /tmp/workspace
-      - restore_cache:
-          keys:
-            # when lock file changes, use increasingly general patterns to restore cache
-            # If this gets our of sync, you can increment the version (vX).  Just be
-            # sure to match that version when saving the cache as well.
-            - node-v1-{{ checksum "package-lock.json" }}
-            - node-v1-
       - run:
           name: install node modules
           command: npm ci
-      # Save the cache to avoid extraneous downloads
-      - save_cache:
-          key: node-v1-{{ checksum "package-lock.json" }}
-          paths:
-            - ./node_modules
       - run:
           name: build
           command: |
