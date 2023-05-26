@@ -12,10 +12,10 @@ const router: Router = Router();
 
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const variables = setSaveInputsFromGetCall(req.params);
+    const variables = setSaveInputsFromGetCall(req.query);
     const headers = req.headers;
-    const accessToken = (req.params.access_token as string) ?? null;
-    const consumerKey = (req.params.consumer_key as string) ?? null;
+    const accessToken = (req.query.access_token as string) ?? null;
+    const consumerKey = (req.query.consumer_key as string) ?? null;
     return res.json(
       await processV3call(accessToken, consumerKey, headers, variables)
     );
